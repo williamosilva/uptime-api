@@ -10,9 +10,10 @@ export class SupabaseHealthIndicator {
     const startTime = Date.now();
 
     try {
-      const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || '';
+      const supabaseUrl =
+        this.configService.get<string>('SUPABASE_URL_HEALTH_CHECK') || '';
       const supabaseKey =
-        this.configService.get<string>('SUPABASE_ANON_KEY') || '';
+        this.configService.get<string>('SUPABASE_ANON_KEY_HEALTH_CHECK') || '';
 
       const response = await fetch(`${supabaseUrl}/rest/v1/`, {
         method: 'GET',
@@ -23,7 +24,7 @@ export class SupabaseHealthIndicator {
       });
 
       const responseTime = Date.now() - startTime;
-
+      console.log(response);
       if (!response.ok) {
         return {
           status: 'down',
@@ -37,11 +38,12 @@ export class SupabaseHealthIndicator {
         responseTimeMs: responseTime,
       };
     } catch (error) {
+      console.log(error);
       const responseTime = Date.now() - startTime;
       return {
         status: 'down',
         responseTimeMs: responseTime,
-        error: error.message,
+        error: error.code || error?.cause?.code || 'UNKNOWN',
       };
     }
   }

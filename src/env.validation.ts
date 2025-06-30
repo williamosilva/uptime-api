@@ -12,11 +12,11 @@ class EnvironmentVariables {
 
   @IsNotEmpty()
   @IsString()
-  SUPABASE_URL: string;
+  SUPABASE_URL_HEALTH_CHECK: string;
 
   @IsNotEmpty()
   @IsString()
-  SUPABASE_ANON_KEY: string;
+  SUPABASE_ANON_KEY_HEALTH_CHECK: string;
 }
 
 export function validate(config: Record<string, unknown>) {
