@@ -6,7 +6,7 @@ export interface ServiceHealth {
 
 export interface HealthResponse {
   status: 'ok' | 'degraded' | 'down';
-  uptime: number;
+  // uptime: number;
   timestamp: string;
   services: Record<string, ServiceHealth>;
 }
@@ -15,7 +15,7 @@ export interface HealthCheckRecord {
   id?: string;
   timestamp: string;
   overall_status: string;
-  uptime: number;
+  // uptime: number;
   frontend_status: string;
   frontend_response_time: number;
   frontend_error?: string;

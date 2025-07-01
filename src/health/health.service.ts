@@ -39,7 +39,7 @@ export class HealthService {
 
     return {
       status: frontendHealth.status,
-      uptime: this.getUptime(),
+      // uptime: this.getUptime(),
       timestamp: new Date().toISOString(),
       services: {
         frontend: frontendHealth,
@@ -52,7 +52,7 @@ export class HealthService {
 
     return {
       status: backendHealth.status,
-      uptime: this.getUptime(),
+      // uptime: this.getUptime(),
       timestamp: new Date().toISOString(),
       services: {
         backend: backendHealth,
@@ -65,7 +65,7 @@ export class HealthService {
 
     return {
       status: supabaseHealth.status,
-      uptime: this.getUptime(),
+      // uptime: this.getUptime(),
       timestamp: new Date().toISOString(),
       services: {
         supabase: supabaseHealth,
@@ -110,7 +110,7 @@ export class HealthService {
 
     return {
       status: this.getOverallStatus(services),
-      uptime: this.getUptime(),
+      // uptime: this.getUptime(),
       timestamp: new Date().toISOString(),
       services,
     };

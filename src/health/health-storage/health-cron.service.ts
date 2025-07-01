@@ -23,7 +23,7 @@ export class HealthCronService implements OnModuleInit, OnModuleDestroy {
   ) {
     const intervalMinutes =
       this.configService.get<number>('HEALTH_CHECK_INTERVAL_MINUTES') || 5;
-    this.intervalMs = intervalMinutes * 60 * 1000; // Converter para millisegundos
+    this.intervalMs = intervalMinutes * 60 * 1000;
 
     this.logger.log(
       `Health check cron configured to run every ${intervalMinutes} minutes`,

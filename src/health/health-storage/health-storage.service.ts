@@ -31,7 +31,7 @@ export class HealthStorageService {
       const record: HealthCheckRecord = {
         timestamp: healthData.timestamp,
         overall_status: healthData.status,
-        uptime: healthData.uptime,
+        // uptime: healthData.uptime,
         frontend_status: healthData.services.frontend?.status || 'unknown',
         frontend_response_time:
           healthData.services.frontend?.responseTimeMs || 0,
@@ -105,6 +105,98 @@ export class HealthStorageService {
       );
     } catch (error) {
       this.logger.error('Error during cleanup:', error);
+      throw error;
+    }
+  }
+
+  async getHealthChecksByDaysAgo(
+    daysAgo: number,
+  ): Promise<HealthCheckRecord[]> {
+    try {
+      // Calcula a data de início
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysAgo);
+      startDate.setHours(0, 0, 0, 0);
+
+      // Calcula a data de fim
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() - daysAgo);
+      endDate.setHours(23, 59, 59, 999);
+
+      this.logger.log(
+        `Fetching health checks for ${daysAgo} days ago (${startDate.toISOString()} to ${endDate.toISOString()})`,
+      );
+
+      const { data, error } = await this.supabase
+        .from('health_checks')
+        .select('*')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        this.logger.error(
+          `Failed to fetch health checks for ${daysAgo} days ago:`,
+          error,
+        );
+        throw error;
+      }
+
+      this.logger.log(
+        `Found ${data?.length || 0} health check records for ${daysAgo} days ago`,
+      );
+
+      return data || [];
+    } catch (error) {
+      this.logger.error(
+        `Error fetching health checks for ${daysAgo} days ago:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async getHealthChecksByDateRange(
+    startDaysAgo: number,
+    endDaysAgo: number = 0,
+  ): Promise<HealthCheckRecord[]> {
+    try {
+      // Data de início
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - startDaysAgo);
+      startDate.setHours(0, 0, 0, 0);
+
+      // Data de fim
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() - endDaysAgo);
+      endDate.setHours(23, 59, 59, 999);
+
+      this.logger.log(
+        `Fetching health checks from ${startDaysAgo} to ${endDaysAgo} days ago (${startDate.toISOString()} to ${endDate.toISOString()})`,
+      );
+
+      const { data, error } = await this.supabase
+        .from('health_checks')
+        .select('*')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        this.logger.error(
+          `Failed to fetch health checks for date range:`,
+          error,
+        );
+        throw error;
+      }
+
+      this.logger.log(
+        `Found ${data?.length || 0} health check records for the specified date range`,
+      );
+
+      return data || [];
+    } catch (error) {
+      this.logger.error(`Error fetching health checks for date range:`, error);
       throw error;
     }
   }
