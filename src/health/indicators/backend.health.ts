@@ -13,7 +13,7 @@ export class BackendHealthIndicator {
     try {
       const url = this.configService.get<string>('BACKEND_URL') || '';
 
-      await axios.get(url, { timeout: 5000 });
+      await axios.get(url, { timeout: 10000 });
       const responseTime = Date.now() - startTime;
 
       return {
