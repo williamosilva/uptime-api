@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
+  FilteredHealthCheckRecord,
   HealthCheckRecord,
   HealthResponse,
 } from 'src/health/types/health.types';
@@ -109,47 +110,60 @@ export class HealthStorageService {
     }
   }
 
-  async getHealthChecksByDaysAgo(
-    daysAgo: number,
+  async getHealthChecksForLastDays(
+    lastDays: number,
+    filter?: 'frontend' | 'backend' | 'supabase',
   ): Promise<HealthCheckRecord[]> {
     try {
-      // Calcula a data de início
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - daysAgo);
+      startDate.setDate(startDate.getDate() - (lastDays - 1));
       startDate.setHours(0, 0, 0, 0);
 
-      // Calcula a data de fim
       const endDate = new Date();
-      endDate.setDate(endDate.getDate() - daysAgo);
       endDate.setHours(23, 59, 59, 999);
 
-      this.logger.log(
-        `Fetching health checks for ${daysAgo} days ago (${startDate.toISOString()} to ${endDate.toISOString()})`,
-      );
-
-      const { data, error } = await this.supabase
+      let query = this.supabase
         .from('health_checks')
         .select('*')
         .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString())
-        .order('created_at', { ascending: true });
+        .lte('created_at', endDate.toISOString());
+
+      if (filter) {
+        switch (filter) {
+          case 'frontend':
+            query = query.not('frontend_status', 'is', null);
+            break;
+          case 'backend':
+            query = query.not('backend_status', 'is', null);
+            break;
+          case 'supabase':
+            query = query.not('supabase_status', 'is', null);
+            break;
+        }
+      }
+
+      const { data, error } = await query.order('created_at', {
+        ascending: true,
+      });
 
       if (error) {
         this.logger.error(
-          `Failed to fetch health checks for ${daysAgo} days ago:`,
+          `Failed to fetch health checks for last ${lastDays} days:`,
           error,
         );
         throw error;
       }
 
-      this.logger.log(
-        `Found ${data?.length || 0} health check records for ${daysAgo} days ago`,
-      );
+      let processedData = data || [];
 
-      return data || [];
+      if (filter && processedData.length > 0) {
+        processedData = this.filterHealthCheckData(processedData, filter);
+      }
+
+      return processedData;
     } catch (error) {
       this.logger.error(
-        `Error fetching health checks for ${daysAgo} days ago:`,
+        `Error fetching health checks for last ${lastDays} days:`,
         error,
       );
       throw error;
@@ -159,45 +173,108 @@ export class HealthStorageService {
   async getHealthChecksByDateRange(
     startDaysAgo: number,
     endDaysAgo: number = 0,
+    filter?: 'frontend' | 'backend' | 'supabase',
   ): Promise<HealthCheckRecord[]> {
     try {
-      // Data de início
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - startDaysAgo);
       startDate.setHours(0, 0, 0, 0);
 
-      // Data de fim
       const endDate = new Date();
       endDate.setDate(endDate.getDate() - endDaysAgo);
       endDate.setHours(23, 59, 59, 999);
 
       this.logger.log(
-        `Fetching health checks from ${startDaysAgo} to ${endDaysAgo} days ago (${startDate.toISOString()} to ${endDate.toISOString()})`,
+        `Fetching health checks from ${startDaysAgo} to ${endDaysAgo} days ago (${startDate.toISOString()} to ${endDate.toISOString()})${filter ? ` - Filter: ${filter}` : ''}`,
       );
 
-      const { data, error } = await this.supabase
+      let query = this.supabase
         .from('health_checks')
         .select('*')
         .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString())
-        .order('created_at', { ascending: true });
+        .lte('created_at', endDate.toISOString());
+
+      if (filter) {
+        switch (filter) {
+          case 'frontend':
+            query = query
+              .neq('frontend_status', 'error')
+              .neq('frontend_error', null);
+            break;
+          case 'backend':
+            query = query
+              .neq('backend_status', 'error')
+              .neq('backend_error', null);
+            break;
+          case 'supabase':
+            query = query
+              .neq('supabase_status', 'error')
+              .neq('supabase_error', null);
+            break;
+        }
+      }
+
+      const { data, error } = await query.order('created_at', {
+        ascending: true,
+      });
 
       if (error) {
         this.logger.error(
-          `Failed to fetch health checks for date range:`,
+          'Failed to fetch health checks for date range:',
           error,
         );
         throw error;
       }
 
-      this.logger.log(
-        `Found ${data?.length || 0} health check records for the specified date range`,
-      );
+      let processedData = data || [];
 
-      return data || [];
+      if (filter && processedData.length > 0) {
+        processedData = this.filterHealthCheckData(processedData, filter);
+      }
+
+      return processedData;
     } catch (error) {
-      this.logger.error(`Error fetching health checks for date range:`, error);
+      this.logger.error('Error fetching health checks for date range:', error);
       throw error;
     }
+  }
+  private filterHealthCheckData(
+    data: HealthCheckRecord[],
+    filter: 'frontend' | 'backend' | 'supabase',
+  ): FilteredHealthCheckRecord[] {
+    return data.map((record) => {
+      const baseRecord = {
+        id: record.id,
+        timestamp: record.timestamp,
+        created_at: record.created_at,
+        overall_status: record.overall_status,
+      };
+
+      switch (filter) {
+        case 'frontend':
+          return {
+            ...baseRecord,
+            frontend_status: record.frontend_status,
+            frontend_response_time: record.frontend_response_time,
+            frontend_error: record.frontend_error,
+          };
+        case 'backend':
+          return {
+            ...baseRecord,
+            backend_status: record.backend_status,
+            backend_response_time: record.backend_response_time,
+            backend_error: record.backend_error,
+          };
+        case 'supabase':
+          return {
+            ...baseRecord,
+            supabase_status: record.supabase_status,
+            supabase_response_time: record.supabase_response_time,
+            supabase_error: record.supabase_error,
+          };
+        default:
+          return record;
+      }
+    });
   }
 }

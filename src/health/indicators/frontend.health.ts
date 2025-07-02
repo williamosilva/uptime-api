@@ -11,7 +11,8 @@ export class FrontendHealthIndicator {
     const startTime = Date.now();
 
     try {
-      const url = this.configService.get<string>('FRONTEND_URL') || '';
+      const url =
+        this.configService.get<string>('FRONTEND_URL_HEALTH_CHECK') || '';
 
       await axios.get(url, { timeout: 5000 });
       const responseTime = Date.now() - startTime;

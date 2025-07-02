@@ -4,11 +4,11 @@ import { IsNotEmpty, IsString, validateSync } from 'class-validator';
 class EnvironmentVariables {
   @IsNotEmpty()
   @IsString()
-  FRONTEND_URL: string;
+  FRONTEND_URL_HEALTH_CHECK: string;
 
   @IsNotEmpty()
   @IsString()
-  BACKEND_URL: string;
+  BACKEND_URL_HEALTH_CHECK: string;
 
   @IsNotEmpty()
   @IsString()

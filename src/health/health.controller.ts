@@ -29,9 +29,9 @@ export class HealthController {
   }
 
   @Get('frontend')
-  @ApiOperation({ summary: 'Verifica saúde do Frontend' })
-  @ApiResponse({ status: 200, description: 'Frontend operacional' })
-  @ApiResponse({ status: 503, description: 'Frontend indisponível' })
+  @ApiOperation({ summary: 'Check Frontend health' })
+  @ApiResponse({ status: 200, description: 'Frontend operational' })
+  @ApiResponse({ status: 503, description: 'Frontend unavailable' })
   async checkFrontend(@Res() res: Response): Promise<void> {
     const health = await this.healthService.checkFrontend();
     this.setStatusCode(res, health);
@@ -39,8 +39,8 @@ export class HealthController {
   }
 
   @Get('backend')
-  @ApiOperation({ summary: 'Verifica saúde do Backend' })
-  @ApiResponse({ status: 200, description: 'Backend operacional' })
+  @ApiOperation({ summary: 'Check Backend health' })
+  @ApiResponse({ status: 200, description: 'Operational backend' })
   async checkBackend(@Res() res: Response): Promise<void> {
     const health = await this.healthService.checkBackend();
     this.setStatusCode(res, health);
@@ -48,9 +48,9 @@ export class HealthController {
   }
 
   @Get('supabase')
-  @ApiOperation({ summary: 'Verifica saúde do Supabase' })
-  @ApiResponse({ status: 200, description: 'Supabase operacional' })
-  @ApiResponse({ status: 503, description: 'Supabase indisponível' })
+  @ApiOperation({ summary: 'Check Supabase health' })
+  @ApiResponse({ status: 200, description: 'Supabase operational' })
+  @ApiResponse({ status: 503, description: 'Supabase unavailable' })
   async checkSupabase(@Res() res: Response): Promise<void> {
     const health = await this.healthService.checkSupabase();
     this.setStatusCode(res, health);
@@ -58,11 +58,11 @@ export class HealthController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Verifica saúde de todos os serviços' })
-  @ApiResponse({ status: 200, description: 'Todos os serviços operacionais' })
+  @ApiOperation({ summary: 'Check health of all services' })
+  @ApiResponse({ status: 200, description: 'All services operational' })
   @ApiResponse({
     status: 503,
-    description: 'Um ou mais serviços indisponíveis',
+    description: 'One or more services unavailable',
   })
   async checkAll(@Res() res: Response): Promise<void> {
     const health = await this.healthService.checkAll();
@@ -70,38 +70,11 @@ export class HealthController {
     res.json(health);
   }
 
-  @Get('history')
-  @ApiOperation({ summary: 'Obtém histórico de health checks' })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Número de registros (padrão: 50)',
-  })
-  @ApiResponse({ status: 200, description: 'Histórico obtido com sucesso' })
-  async getHealthHistory(
-    @Res() res: Response,
-    @Query('limit') limit?: string,
-  ): Promise<void> {
-    try {
-      const limitNumber = limit ? parseInt(limit, 10) : 50;
-      const history =
-        await this.healthStorageService.getRecentHealthChecks(limitNumber);
-      res.status(HttpStatus.OK).json({
-        success: true,
-        data: history,
-        count: history.length,
-      });
-    } catch (error) {
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error: 'Failed to fetch health check history',
-      });
-    }
-  }
-
   @Post('check-now')
-  @ApiOperation({ summary: 'Executa health check manual e salva no banco' })
-  @ApiResponse({ status: 200, description: 'Health check executado e salvo' })
+  @ApiOperation({
+    summary: 'Performs manual health check and saves to database',
+  })
+  @ApiResponse({ status: 200, description: 'Health check executed and saved' })
   async executeManualCheck(@Res() res: Response): Promise<void> {
     try {
       await this.healthCronService.executeManualCheck();
@@ -118,10 +91,10 @@ export class HealthController {
   }
 
   @Get('cron-status')
-  @ApiOperation({ summary: 'Obtém status do cron job' })
+  @ApiOperation({ summary: 'Get cron job status' })
   @ApiResponse({
     status: 200,
-    description: 'Status do cron obtido com sucesso',
+    description: 'Cron status successfully obtained',
   })
   async getCronStatus(@Res() res: Response): Promise<void> {
     const status = this.healthCronService.getCronStatus();
@@ -131,77 +104,116 @@ export class HealthController {
     });
   }
 
-  @Get('history/days-ago/:days')
-  @ApiOperation({ summary: 'Obtém health checks de X dias atrás' })
+  @Get('history/last-days')
+  @ApiOperation({
+    summary: 'Get health checks from the last X days',
+  })
   @ApiQuery({
     name: 'days',
     required: true,
-    description: 'Número de dias atrás (ex: 7 para uma semana atrás)',
+    description:
+      'Number of days to fetch (including today, e.g. 7 for last 7 days)',
     example: 7,
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description: 'Filter by specific component',
+    enum: ['frontend', 'backend', 'supabase'],
+    example: 'backend',
   })
   @ApiResponse({
     status: 200,
-    description: 'Health checks do dia especificado obtidos com sucesso',
+    description: 'Health checks from the specified period fetched successfully',
   })
-  async getHealthChecksByDaysAgo(
+  async getHealthChecksForLastDays(
     @Res() res: Response,
     @Query('days') days: string,
+    @Query('filter') filter?: 'frontend' | 'backend' | 'supabase',
   ): Promise<void> {
     try {
-      const daysAgo = parseInt(days, 10);
+      const lastDays = parseInt(days, 10);
 
-      if (isNaN(daysAgo) || daysAgo < 0) {
+      if (isNaN(lastDays) || lastDays < 1) {
         res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
-          error: 'Days parameter must be a positive number',
+          error: 'Days parameter must be a positive number greater than 0',
+        });
+        return;
+      }
+
+      if (filter && !['frontend', 'backend', 'supabase'].includes(filter)) {
+        res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          error: 'Filter must be one of: frontend, backend, supabase',
         });
         return;
       }
 
       const healthChecks =
-        await this.healthStorageService.getHealthChecksByDaysAgo(daysAgo);
+        await this.healthStorageService.getHealthChecksForLastDays(
+          lastDays,
+          filter,
+        );
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - (lastDays - 1));
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
 
       res.status(HttpStatus.OK).json({
         success: true,
         data: healthChecks,
         count: healthChecks.length,
-        daysAgo,
-        date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split('T')[0],
+        period: {
+          days: lastDays,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+        },
+        filter: filter || 'all',
       });
     } catch (error) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         success: false,
-        error: 'Failed to fetch health checks for the specified day',
+        error: 'Failed to fetch health checks for the specified period',
       });
     }
   }
 
   @Get('history/range')
   @ApiOperation({
-    summary: 'Obtém health checks de um período (range de dias)',
+    summary: 'Get health checks for a period (range of days)',
   })
   @ApiQuery({
     name: 'startDays',
     required: true,
-    description: 'Início do período em dias atrás (ex: 30)',
+    description: 'Start of period in days ago (ex: 30)',
     example: 30,
   })
   @ApiQuery({
     name: 'endDays',
     required: false,
-    description: 'Fim do período em dias atrás (padrão: 0 = hoje)',
+    description: 'End of period in days ago (default: 0 = today)',
     example: 0,
+  })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description: 'Filter by specific component',
+    enum: ['frontend', 'backend', 'supabase'],
+    example: 'frontend',
   })
   @ApiResponse({
     status: 200,
-    description: 'Health checks do período obtidos com sucesso',
+    description: 'Health checks for period successfully fetched',
   })
   async getHealthChecksByRange(
     @Res() res: Response,
     @Query('startDays') startDays: string,
     @Query('endDays') endDays?: string,
+    @Query('filter') filter?: 'frontend' | 'backend' | 'supabase',
   ): Promise<void> {
     try {
       const startDaysAgo = parseInt(startDays, 10);
@@ -231,10 +243,20 @@ export class HealthController {
         return;
       }
 
+      // Validar filtro se fornecido
+      if (filter && !['frontend', 'backend', 'supabase'].includes(filter)) {
+        res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          error: 'Filter must be one of: frontend, backend, supabase',
+        });
+        return;
+      }
+
       const healthChecks =
         await this.healthStorageService.getHealthChecksByDateRange(
           startDaysAgo,
           endDaysAgo,
+          filter,
         );
 
       const startDate = new Date(
@@ -246,6 +268,7 @@ export class HealthController {
         success: true,
         data: healthChecks,
         count: healthChecks.length,
+        filter: filter || 'all',
         period: {
           startDaysAgo,
           endDaysAgo,
@@ -261,37 +284,37 @@ export class HealthController {
     }
   }
 
-  @Get('stats/days-ago/:days')
+  @Get('stats/last-days')
   @ApiOperation({
-    summary: 'Obtém estatísticas de health checks de X dias atrás',
+    summary: 'Get health check statistics for the last X days',
   })
   @ApiQuery({
     name: 'days',
     required: true,
-    description: 'Número de dias atrás para calcular estatísticas',
+    description: 'Number of days to calculate statistics (including today)',
     example: 7,
   })
   @ApiResponse({
     status: 200,
-    description: 'Estatísticas calculadas com sucesso',
+    description: 'Statistics calculated successfully',
   })
-  async getHealthStatsForDay(
+  async getHealthStatsForLastDays(
     @Res() res: Response,
     @Query('days') days: string,
   ): Promise<void> {
     try {
-      const daysAgo = parseInt(days, 10);
+      const lastDays = parseInt(days, 10);
 
-      if (isNaN(daysAgo) || daysAgo < 0) {
+      if (isNaN(lastDays) || lastDays < 1) {
         res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
-          error: 'Days parameter must be a positive number',
+          error: 'Days parameter must be a positive number greater than 0',
         });
         return;
       }
 
       const healthChecks =
-        await this.healthStorageService.getHealthChecksByDaysAgo(daysAgo);
+        await this.healthStorageService.getHealthChecksForLastDays(lastDays);
 
       const stats = {
         totalChecks: healthChecks.length,
@@ -306,6 +329,8 @@ export class HealthController {
         },
         services: {
           frontend: {
+            url:
+              process.env.FRONTEND_URL_HEALTH_CHECK || 'http://localhost:3000',
             avgResponseTime:
               healthChecks.length > 0
                 ? healthChecks.reduce(
@@ -323,6 +348,8 @@ export class HealthController {
                 : 0,
           },
           backend: {
+            url:
+              process.env.BACKEND_URL_HEALTH_CHECK || 'http://localhost:4000',
             avgResponseTime:
               healthChecks.length > 0
                 ? healthChecks.reduce(
@@ -339,6 +366,7 @@ export class HealthController {
                 : 0,
           },
           supabase: {
+            url: process.env.SUPABASE_URL || 'https://supabase.com',
             avgResponseTime:
               healthChecks.length > 0
                 ? healthChecks.reduce(
@@ -358,13 +386,21 @@ export class HealthController {
         },
       };
 
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - (lastDays - 1));
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+
       res.status(HttpStatus.OK).json({
         success: true,
         data: stats,
-        daysAgo,
-        date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split('T')[0],
+        period: {
+          days: lastDays,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+        },
       });
     } catch (error) {
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({

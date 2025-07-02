@@ -27,3 +27,10 @@ export interface HealthCheckRecord {
   supabase_error?: string;
   created_at?: string;
 }
+
+export type FilteredHealthCheckRecord = Partial<HealthCheckRecord> & {
+  id?: string;
+  timestamp: string;
+  created_at?: string;
+  overall_status: string;
+};

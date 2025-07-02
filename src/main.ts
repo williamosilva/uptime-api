@@ -5,11 +5,20 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const corsOrigin = process.env.CORS_ORIGIN?.split(',').map((origin) =>
+    origin.trim(),
+  );
+
+  app.enableCors({
+    origin: corsOrigin,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Health Check API')
-    .setDescription('Monitoramento de saúde dos serviços')
+    .setDescription('Service health monitoring (Frontend, Backend, Supabase)')
     .setVersion('1.0')
-    .addTag('health')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -24,7 +24,7 @@ export class SupabaseHealthIndicator {
       });
 
       const responseTime = Date.now() - startTime;
-      //   console.log(response);
+
       if (!response.ok) {
         return {
           status: 'down',

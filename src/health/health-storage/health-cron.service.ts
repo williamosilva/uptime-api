@@ -45,8 +45,6 @@ export class HealthCronService implements OnModuleInit, OnModuleDestroy {
       clearInterval(this.cronInterval);
     }
 
-    this.logger.log('Starting health check cron job');
-
     this.executeHealthCheck();
 
     this.cronInterval = setInterval(() => {
@@ -63,7 +61,6 @@ export class HealthCronService implements OnModuleInit, OnModuleDestroy {
   }
 
   private startCleanupCron(): void {
-    // Executar limpeza diariamente (24 horas)
     const cleanupIntervalMs = 24 * 60 * 60 * 1000;
 
     this.cleanupInterval = setInterval(() => {
