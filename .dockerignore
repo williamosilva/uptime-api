@@ -1,0 +1,81 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build outputs
+dist
+build
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Test files
+test
+*.spec.ts
+*.test.ts
+
+# Documentation
+README.md
+*.md
+
+# ESLint
+.eslintrc*
+
+# Prettier
+.prettierrc*
+
+# TypeScript
+*.tsbuildinfo
+
+# Temporary files
+tmp
+temp
+
+# Cache directories
+.npm
+.yarn
+.pnp
+.pnp.js
+.cache
