@@ -1,20 +1,25 @@
 import { plainToInstance } from 'class-transformer';
-import { IsNotEmpty, IsString, validateSync } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  validateSync,
+} from 'class-validator';
 
 class EnvironmentVariables {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   FRONTEND_URL_HEALTH_CHECK: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   BACKEND_URL_HEALTH_CHECK: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   SUPABASE_URL_HEALTH_CHECK: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   SUPABASE_ANON_KEY_HEALTH_CHECK: string;
 }

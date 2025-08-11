@@ -1,11 +1,11 @@
 export interface ServiceHealth {
-  status: 'ok' | 'degraded' | 'down';
+  status: 'ok' | 'degraded' | 'down' | 'absent';
   responseTimeMs: number;
   error?: string;
 }
 
 export interface HealthResponse {
-  status: 'ok' | 'degraded' | 'down';
+  status: 'ok' | 'degraded' | 'down' | 'absent';
   // uptime: number;
   timestamp: string;
   services: Record<string, ServiceHealth>;

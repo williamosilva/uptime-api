@@ -21,8 +21,9 @@ export class HealthService {
   private getOverallStatus(
     services: Record<string, ServiceHealth>,
   ): 'ok' | 'degraded' | 'down' {
-    const statuses = Object.values(services).map((service) => service.status);
-
+    const statuses = Object.values(services)
+      .filter((service) => service.status !== 'absent')
+      .map((service) => service.status);
     if (statuses.includes('down')) {
       return 'down';
     }

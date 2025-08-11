@@ -366,7 +366,8 @@ export class HealthController {
                 : 0,
           },
           supabase: {
-            url: process.env.SUPABASE_URL || 'https://supabase.com',
+            url:
+              process.env.SUPABASE_URL_HEALTH_CHECK || 'https://supabase.com',
             avgResponseTime:
               healthChecks.length > 0
                 ? healthChecks.reduce(
