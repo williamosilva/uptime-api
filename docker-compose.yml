@@ -1,15 +1,15 @@
-version: '3.8'
+
 
 services:
-  health-check-api:
+  uptime-api:
     build:
       context: .
       dockerfile: Dockerfile
       target: production
-    container_name: health-check-api
+    container_name: uptime-api
     restart: unless-stopped
     ports:
-      - PORT=${PORT}
+      - "${PORT}:${PORT}"
     environment:
       - NODE_ENV=production
       - PORT=${PORT}
@@ -25,7 +25,7 @@ services:
     volumes:
       - ./logs:/app/logs
     networks:
-      - health-check-network
+      - uptime-api-network
     healthcheck:
       test:
         [
@@ -42,12 +42,12 @@ services:
       start_period: 40s
 
   # Development version (optional)
-  health-check-api-dev:
+  uptime-api-dev:
     build:
       context: .
       dockerfile: Dockerfile
       target: development
-    container_name: health-check-api-dev
+    container_name: uptime-api-dev
     restart: unless-stopped
     ports:
       - '${PORT}:${PORT}'
@@ -67,12 +67,12 @@ services:
       - .:/app
       - /app/node_modules
     networks:
-      - health-check-network
+      - uptime-api-network
     profiles:
       - dev
 
 networks:
-  health-check-network:
+  uptime-api-network:
     driver: bridge
 
 volumes:
