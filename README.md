@@ -154,7 +154,7 @@ yarn start:prod
 docker-compose up -d
 
 # View logs
-docker-compose logs -f health-check-api
+docker-compose logs -f uptime-api
 
 # Stop the container
 docker-compose down
@@ -163,10 +163,10 @@ docker-compose down
 #### Development
 ```bash
 # Build and start the development container with hot reload
-docker-compose --profile dev up -d health-check-api-dev
+docker-compose --profile dev up -d uptime-api-dev
 
 # View logs
-docker-compose logs -f health-check-api-dev
+docker-compose logs -f uptime-api-dev
 
 # Stop the development container
 docker-compose --profile dev down

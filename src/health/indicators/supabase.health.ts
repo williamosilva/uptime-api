@@ -45,7 +45,7 @@ export class SupabaseHealthIndicator {
         headers: {
           apikey: supabaseKey,
           Authorization: `Bearer ${supabaseKey}`,
-          'User-Agent': 'Health-Check/1.0',
+          'User-Agent': 'Uptime/1.0',
         },
         signal: AbortSignal.timeout(10000),
       });

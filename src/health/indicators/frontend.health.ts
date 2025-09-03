@@ -36,7 +36,7 @@ export class FrontendHealthIndicator {
       const response = await axios.get(url, {
         timeout: 10000,
         headers: {
-          'User-Agent': 'Health-Check/1.0',
+          'User-Agent': 'Uptime/1.0',
         },
 
         maxRedirects: 3,
