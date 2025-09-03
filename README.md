@@ -1,5 +1,3 @@
-<div align="center">
-
 # UpTime - Backend API
 
 Real-time service monitoring API built with NestJS for monitoring Frontend, Backend, and Supabase services.
@@ -8,9 +6,16 @@ Real-time service monitoring API built with NestJS for monitoring Frontend, Back
 
 UpTime Backend is a robust health monitoring API that provides real-time status checking for multiple services. Built with NestJS, it offers automatic health checks with configurable intervals, data retention, and comprehensive monitoring capabilities.
 
+**This project monitors three essential services:**
+- **1 Frontend Service** - Web application health and response time
+- **1 Backend Service** - API service health and response time  
+- **1 Supabase Service** - Database service health and response time
+
 ## System Integration
 
 This backend API works seamlessly with the [UpTime Frontend](https://github.com/williamosilva/uptime-app) to provide a complete monitoring solution. When both applications are properly configured with matching environment variables, they create a powerful real-time monitoring dashboard that displays service health status, historical data, and performance metrics.
+
+<div align="center">
 
 ![UpTime System Demo](https://i.imgur.com/IDbBjFY.gif)
 
