@@ -9,9 +9,10 @@ services:
     container_name: health-check-api
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - PORT=${PORT}
     environment:
       - NODE_ENV=production
+      - PORT=${PORT}
       - FRONTEND_URL_HEALTH_CHECK=${FRONTEND_URL_HEALTH_CHECK}
       - BACKEND_URL_HEALTH_CHECK=${BACKEND_URL_HEALTH_CHECK}
       - SUPABASE_URL_HEALTH_CHECK=${SUPABASE_URL_HEALTH_CHECK}
@@ -33,7 +34,7 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://localhost:3000/health',
+          'http://localhost:${PORT}/health',
         ]
       interval: 30s
       timeout: 10s
@@ -49,9 +50,10 @@ services:
     container_name: health-check-api-dev
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - '${PORT}:${PORT}'
     environment:
       - NODE_ENV=development
+      - PORT=${PORT}
       - FRONTEND_URL_HEALTH_CHECK=${FRONTEND_URL_HEALTH_CHECK}
       - BACKEND_URL_HEALTH_CHECK=${BACKEND_URL_HEALTH_CHECK}
       - SUPABASE_URL_HEALTH_CHECK=${SUPABASE_URL_HEALTH_CHECK}
